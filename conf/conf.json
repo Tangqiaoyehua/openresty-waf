@@ -1,0 +1,8 @@
+{
+	"cc_conf":{
+		"threshold":100,
+		"foridden_time":600,
+		"period":1
+	}
+
+}
