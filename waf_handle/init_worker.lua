@@ -1,4 +1,4 @@
-local cjson=require"cjson"
+local cjson=require"cjson.safe"
 local data=require"data"
 local handle={}
 local delay=5

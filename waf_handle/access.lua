@@ -4,9 +4,38 @@ local host=ngx.var.host
 local waf_conf=data.get_conf()
 local handle={}
 
+handle["slow_check"]=function()
+	local slow_attack_conf=waf_conf["slow_attack_conf"]
+	if not slow_attack_conf then
+		ngx.log(ngx.WARN,"waflog:No slow_attack_conf!")
+		return 
+	end
+	local flag=slow_attack_conf["status"]
+	if flag~="on" then
+		ngx.log(ngx.WARN,"waflog:slow_attack_anti module off!")
+		return
+	end
+	local dict=ngx.shared.slow_attack_cache
+	local slow_attack_key="slow_attack:"..ip..host
+	local flag=dict:get(slow_attack_key)
+	if flag then
+		ngx.log(ngx.WARN,"waflog:Slow attack IP=>"..ip)
+		return ngx.exit(403)
+	end
+end
+
 handle["cc_anti"]=function()
 	local dict=ngx.shared.cc_cache
 	local cc_conf=waf_conf["cc_conf"]
+	if not cc_conf then
+		ngx.log(ngx.WARN,"waflog:No cc_conf!")
+		return 
+	end
+	local flag=cc_conf["status"]
+	if flag~="on" then
+		ngx.log(ngx.WARN,"waflog:CC anti module off!")
+		return 
+	end
 	local threshold=cc_conf.threshold
 	local period=cc_conf.period
 	local forbidden_time=cc_conf.forbidden_time
@@ -35,5 +64,5 @@ handle["cc_anti"]=function()
 end
 
 --hanle
-
+handle.slow_check()
 handle.cc_anti()
