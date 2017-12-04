@@ -11,4 +11,9 @@ A WAF program based on openresty.
 2.功能及测试
 
 防CC：使用jmeter压测。
+
 慢速攻击：github上有一个项目slowhttptest可以用来测试
+
+防注入：dvwa平台
+
+防爬虫：jmeter自定义ua
