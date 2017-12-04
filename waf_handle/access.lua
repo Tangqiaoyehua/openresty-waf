@@ -1,19 +1,18 @@
 local data=require"data"
+local check_args=require"rule"
+local check_func=require"check_func"
 local ip=ngx.var.remote_addr
 local host=ngx.var.host
 local waf_conf=data.get_conf()
+local sql_check_dict=check_args["sql_check_dict"]
+local xss_check_dict=check_args["xss_check_dict"]
 local handle={}
 
 handle["slow_check"]=function()
-	local slow_attack_conf=waf_conf["slow_attack_conf"]
-	if not slow_attack_conf then
-		ngx.log(ngx.WARN,"waflog:No slow_attack_conf!")
+	local conf=waf_conf["slow_attack_conf"]
+	if not conf or conf["status"]~="on" then
+		ngx.log(ngx.WARN,"waflog:No slow_attack conf or module was off!")
 		return 
-	end
-	local flag=slow_attack_conf["status"]
-	if flag~="on" then
-		ngx.log(ngx.WARN,"waflog:slow_attack_anti module off!")
-		return
 	end
 	local dict=ngx.shared.slow_attack_cache
 	local slow_attack_key="slow_attack:"..ip..host
@@ -25,20 +24,15 @@ handle["slow_check"]=function()
 end
 
 handle["cc_anti"]=function()
+	local conf=waf_conf["cc_conf"]
+	if not conf or conf["status"]~="on" then
+		ngx.log(ngx.WARN,"waflog:No cc_conf or module was off!")
+		return 
+	end
 	local dict=ngx.shared.cc_cache
-	local cc_conf=waf_conf["cc_conf"]
-	if not cc_conf then
-		ngx.log(ngx.WARN,"waflog:No cc_conf!")
-		return 
-	end
-	local flag=cc_conf["status"]
-	if flag~="on" then
-		ngx.log(ngx.WARN,"waflog:CC anti module off!")
-		return 
-	end
-	local threshold=cc_conf.threshold
-	local period=cc_conf.period
-	local forbidden_time=cc_conf.forbidden_time
+	local threshold=conf.threshold
+	local period=conf.period
+	local forbidden_time=conf.forbidden_time
 	local access_id=host..ip
 	
 	local black_key="forbidden ip:"..ip
@@ -61,6 +55,58 @@ handle["cc_anti"]=function()
 	else
 		dict:set(count_key,1,period)
 	end
+end
+
+handle["url_check"]=function()
+	local conf=waf_conf["url_check_conf"]
+	if not conf or conf["status"]~="on" then
+		ngx.log(ngx.WARN,"waflog:No url_check conf or module was off!")
+		return
+	end
+	
+	local url=ngx.var.request_uri
+	if conf["sql_check"]=="on" then
+		local sta,content=check_func.sql_check_func(string.lower(url),sql_check_dict,"sql")
+		if sta==0 then
+			return
+		elseif sta==1 then
+			ngx.log(ngx.ERR,"WAF:attack=sql&info="..content)
+			ngx.exit(403)
+		else
+			ngx.log(ngx.WARN,"waflog:sql check "..content)
+		end
+	end
+	
+	if conf["xss_check"]=="on" then
+		local sta,content=check_func.sql_check_func(string.lower(url),sql_check_dict,"xss")
+		if sta==0 then
+			return
+		elseif sta==1 then
+			ngx.log(ngx.ERR,"WAF:attack=xss&info="..content)
+			ngx.exit(403)
+		else
+			ngx.log(ngx.WARN,"waflog:xss check "..content)
+		end
+	end
+	
+end
+
+handle["header_check"]=function()
+	local conf=waf_conf["header_check_conf"]
+	if not conf or conf["status"]~="on" then
+		ngx.log(ngx.WARN,"waflog:No header_check conf or module was off!")
+		return 
+	end
+	
+end
+
+handle["body_check"]=function()
+	local conf=waf_conf["body_check_conf"]
+	if not conf or conf["status"]~="on" then
+		ngx.log(ngx.WARN,"waflog:No header_check conf or module was off!")
+		return 
+	end
+	
 end
 
 --hanle
