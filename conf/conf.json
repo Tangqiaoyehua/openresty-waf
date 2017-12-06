@@ -1,35 +1,21 @@
 {
 	"cc_conf":{
-		"status":"on"
+		"status":"on",
 		"threshold":100,
 		"forbidden_time":600,
 		"period":1
-	}
+	},
 	"slow_attack_conf":{
 		"status":"on",
 		"max_req_time":5,
 		"threshold":100,
 		"forbidden_time":600,
 		"period":10
-	}
-	"url_check_conf":{
-		"status":"on",
-		"sql_check":"on",
-		"xss_check":"on",
-		"url_length_check":{
-			"status":"on",
-			"max_length":400
-		}
 	},
-	"header_check_conf":{
-		"status":"on",
-		"sql_check":"on",
-		"xss_check":"on"
-	},
-	"body_check_conf":{
-		"status":"on",
-		"sql_check":"on",
-		"xss_check":"on"
-	},
+	"uri_check":"on",
+	"args_check":"on",
+	"header_cookie_check":"on",
+	"body_check":"on",
+	"crawler_check":"on"
 
 }
