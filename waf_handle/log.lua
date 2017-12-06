@@ -4,6 +4,11 @@ local ip=ngx.var.remote_addr
 local waf_conf=data.get_conf()
 local handle={}
 
+local access_status=ngx.ctx.access_status
+if access_status then
+	return
+end
+
 handle["slow_attack_anti"] =function()
 	local slow_attack_conf=waf_conf["slow_attack_conf"]
 	if not slow_attack_conf then

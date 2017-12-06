@@ -6,6 +6,18 @@ local host=ngx.var.host
 local waf_conf=data.get_conf()
 local handle={}
 
+local special_list=waf_conf["special_ip_list"]
+local access_status
+if special_list then
+	access_status=special_list[ip]
+	if access_status==1 then
+		ngx.ctx.access_status=true
+		return
+	elseif access_status==-1 then
+		return ngx.exit(403)
+	end
+end
+
 handle["slow_check"]=function()
 	local conf=waf_conf["slow_attack_conf"]
 	if not conf or conf["status"]~="on" then
@@ -99,7 +111,6 @@ handle["header_cookie_check"]=function()
 		ngx.log(ngx.WARN,"waflog:No header_cookie_check conf or module was off!")
 		return
 	end
-	
 	local cookie=require"resty.cookie"
 	local mz="header_cookie"
 	local ck,err=cookie:new()
@@ -133,7 +144,6 @@ handle["crawler_check"]=function()
 		ngx.log(ngx.WARN,"waflog:No crawler_check conf or module was off!")
 		return 
 	end
-	
 	local mz="user_agent"
 	local ua=ngx.var.http_user_agent
 	if ua then
@@ -147,6 +157,7 @@ handle["crawler_check"]=function()
 		return ngx.exit(403)
 	end
 end
+
 
 --hanle
 handle.slow_check()
