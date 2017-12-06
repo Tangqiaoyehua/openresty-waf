@@ -1,5 +1,5 @@
 local data=require"data"
-local check_args=require"rule"
+local check_args=require"check_args"
 local check_func=require"check_func"
 local ip=ngx.var.remote_addr
 local host=ngx.var.host
@@ -57,58 +57,107 @@ handle["cc_anti"]=function()
 	end
 end
 
-handle["url_check"]=function()
-	local conf=waf_conf["url_check_conf"]
-	if not conf or conf["status"]~="on" then
-		ngx.log(ngx.WARN,"waflog:No url_check conf or module was off!")
+handle["uri_check"]=function()
+	local flag=waf_conf["uri_check"]
+	if not flag or flag~="on" then
+		ngx.log(ngx.WARN,"waflog:No uri_check conf or module was off!")
 		return
 	end
 	
-	local url=ngx.var.request_uri
-	if conf["sql_check"]=="on" then
-		local sta,content=check_func.sql_check_func(string.lower(url),sql_check_dict,"sql")
-		if sta==0 then
-			return
-		elseif sta==1 then
-			ngx.log(ngx.ERR,"WAF:attack=sql&info="..content)
-			ngx.exit(403)
-		else
-			ngx.log(ngx.WARN,"waflog:sql check "..content)
-		end
+	local uri=ngx.var.request_uri
+	uri=ngx.unescape_uri(uri)
+	uri=string.lower(uri)
+	local mz="uri"
+	local res,err=check_func.handle(uri,mz)
+	if res~=0 then
+		ngx.log(ngx.ERR,"WAF:"..err)
+		return ngx.exit(403)
 	end
-	
-	if conf["xss_check"]=="on" then
-		local sta,content=check_func.sql_check_func(string.lower(url),sql_check_dict,"xss")
-		if sta==0 then
-			return
-		elseif sta==1 then
-			ngx.log(ngx.ERR,"WAF:attack=xss&info="..content)
-			ngx.exit(403)
-		else
-			ngx.log(ngx.WARN,"waflog:xss check "..content)
-		end
-	end
-	
 end
 
-handle["header_check"]=function()
-	local conf=waf_conf["header_check_conf"]
-	if not conf or conf["status"]~="on" then
-		ngx.log(ngx.WARN,"waflog:No header_check conf or module was off!")
-		return 
+handle["args_check"]=function()
+	local flag=waf_conf["args_check"]
+	if not flag or flag~="on" then
+		ngx.log(ngx.WARN,"waflog:No args_check conf or module was off!")
+		return
 	end
+	
+	local args=ngx.req.get_uri_args()
+	local mz="args"
+	for k,v in pairs(args) do
+		local res,err=check_func.handle(v,mz)
+		if res~=0 then
+			ngx.log(ngx.ERR,"WAF:"..err)
+			return ngx.exit(403)
+		end
+	end
+end
+
+
+
+handle["header_cookie_check"]=function()
+	local flag=waf_conf["header_cookie_check"]
+	if not flag or flag~="on" then
+		ngx.log(ngx.WARN,"waflog:No header_cookie_check conf or module was off!")
+		return
+	end
+	local cookie=require"resty.cookie"
+	local mz="header_cookie"
+	local ck,err=cookie:new()
+	local ck_dict=ck:get_all()
+	if ck_dict then
+		for _,v in pairs(ck_dict) do
+			local res,err=check_func.handle(v,mz)
+			if res~=0 then
+				ngx.log(ngx.ERR,"WAF:"..err)
+				return ngx.exit(403)
+			end
+		end
+	end
+	
 	
 end
 
 handle["body_check"]=function()
-	local conf=waf_conf["body_check_conf"]
-	if not conf or conf["status"]~="on" then
-		ngx.log(ngx.WARN,"waflog:No header_check conf or module was off!")
+	local flag=waf_conf["body_check"]
+	if not flag or flag~="on" then
+		ngx.log(ngx.WARN,"waflog:No body_check conf or module was off!")
 		return 
 	end
 	
+	
+end
+
+handle["crawler_check"]=function()
+	local flag=waf_conf["crawler_check"]
+	if not flag or flag~="on" then
+		ngx.log(ngx.WARN,"waflog:No crawler_check conf or module was off!")
+		return 
+	end
+	local mz="user_agent"
+	local ua=ngx.var.http_user_agent
+	if ua then
+		local res,err=check_func.handle(ua,mz)
+		if res~=0 then
+			ngx.log(ngx.ERR,"WAF:"..err)
+			return ngx.exit(403)
+		end
+	else
+		ngx.log(ngx.ERR,"WAF:no user-agent")
+		return ngx.exit(403)
+	end
 end
 
 --hanle
 handle.slow_check()
 handle.cc_anti()
+handle.uri_check()
+handle.args_check()
+handle.header_cookie_check()
+handle.crawler_check()
+
+
+
+
+
+
