@@ -9,6 +9,7 @@ A WAF program based on openresty.
 下载最新的openresty压缩包，按照官网的随便安装两下就行了。
 
 2.功能及测试
+注：功能及模块配置见conf/conf.json
 
 防CC：使用jmeter压测。
 
@@ -17,3 +18,5 @@ A WAF program based on openresty.
 防注入：dvwa平台
 
 防爬虫：jmeter自定义ua
+
+黑白名单：黑名单为-1，白名单为1
