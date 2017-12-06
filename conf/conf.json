@@ -1,4 +1,8 @@
 {
+	"special_ip_list":{
+		"127.0.0.1":1,
+		"172.17.122.208":-1
+	},
 	"cc_conf":{
 		"status":"on",
 		"threshold":100,
