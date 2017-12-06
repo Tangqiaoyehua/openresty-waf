@@ -4,8 +4,6 @@ local check_func=require"check_func"
 local ip=ngx.var.remote_addr
 local host=ngx.var.host
 local waf_conf=data.get_conf()
-local sql_check_dict=check_args["sql_check_dict"]
-local xss_check_dict=check_args["xss_check_dict"]
 local handle={}
 
 handle["slow_check"]=function()
@@ -101,6 +99,7 @@ handle["header_cookie_check"]=function()
 		ngx.log(ngx.WARN,"waflog:No header_cookie_check conf or module was off!")
 		return
 	end
+	
 	local cookie=require"resty.cookie"
 	local mz="header_cookie"
 	local ck,err=cookie:new()
@@ -134,6 +133,7 @@ handle["crawler_check"]=function()
 		ngx.log(ngx.WARN,"waflog:No crawler_check conf or module was off!")
 		return 
 	end
+	
 	local mz="user_agent"
 	local ua=ngx.var.http_user_agent
 	if ua then
