@@ -1,0 +1,25 @@
+{
+	"special_ip_list":{
+		"127.0.0.1":1,
+		"172.17.122.208":-1
+	},
+	"cc_conf":{
+		"status":"on",
+		"threshold":100,
+		"forbidden_time":600,
+		"period":1
+	},
+	"slow_attack_conf":{
+		"status":"on",
+		"max_req_time":5,
+		"threshold":100,
+		"forbidden_time":600,
+		"period":10
+	},
+	"uri_check":"on",
+	"args_check":"on",
+	"header_cookie_check":"on",
+	"body_check":"on",
+	"crawler_check":"on"
+
+}
