@@ -134,8 +134,18 @@ handle["body_check"]=function()
 		ngx.log(ngx.WARN,"waflog:No body_check conf or module was off!")
 		return 
 	end
+	local mz="body"
+	ngx.req.read_body()
+	local content=ngx.req.get_body_data()
+	--ngx.log(ngx.ERR,"dingding==>",content)
+	if content then
+		local res,err=check_func.handle(content,mz)
+		if res~=0 then
+			ngx.log(ngx.ERR,"WAF:",err)
+			return ngx.exit(403)
+		end
 	
-	
+	end
 end
 
 handle["crawler_check"]=function()
@@ -165,6 +175,7 @@ handle.cc_anti()
 handle.uri_check()
 handle.args_check()
 handle.header_cookie_check()
+handle.body_check()
 handle.crawler_check()
 
 
