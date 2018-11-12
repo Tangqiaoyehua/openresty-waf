@@ -1,25 +1,26 @@
 {
-	"special_ip_list":{
-		"127.0.0.1":1,
-		"172.17.122.208":-1
-	},
-	"cc_conf":{
-		"status":"on",
-		"threshold":100,
-		"forbidden_time":600,
-		"period":1
-	},
-	"slow_attack_conf":{
-		"status":"on",
-		"max_req_time":5,
-		"threshold":100,
-		"forbidden_time":600,
-		"period":10
-	},
-	"uri_check":"on",
-	"args_check":"on",
-	"header_cookie_check":"on",
-	"body_check":"on",
-	"crawler_check":"on"
-
+    "sqli_check":true,
+    "xss_check":true,
+    "rules_engine_check":true,
+    "access":{
+        "args":{
+            "duplicating_check":true,
+            "max_num_check":true,
+        },
+        "headers":{
+            "crawler_check":true,
+            "cookie_tamper_check":true,
+            "referer_check":true
+        },
+        "body":{
+            "max_length_check":true
+        },
+        "action":{
+            "cc_check":true,
+            "black_white_list_check":true
+        },
+    },
+    "header_filter":{},
+    "body_filter":{}
+	
 }
